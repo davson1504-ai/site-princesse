@@ -1,18 +1,21 @@
 import { test, expect } from "@playwright/test";
+import { findAvailableSlot } from "./availability-helper";
 
 test("une cliente réserve puis Princesse voit la demande", async ({ page }, testInfo) => {
-  const runOffset = 20 + (Math.floor(Date.now() / 1000) % 300);
-  const offset = runOffset + (testInfo.project.name === "mobile" ? 1 : 0);
-  const future = new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10);
+  const projectOffset = testInfo.project.name === "mobile" ? 120 : 20;
+  const slot = await findAvailableSlot(page.request, "tresses", projectOffset);
   const customer = `Cliente Test ${testInfo.project.name}`;
+  await expect((await page.request.get("/api/admin/appointments")).status()).toBe(401);
   await page.goto("/rendez-vous");
   await page.getByLabel("Nom complet").fill(customer);
   await page.getByLabel("Téléphone", { exact: true }).fill("+22890000001");
   await page.getByLabel("WhatsApp (format international)", { exact: true }).fill("+22890000001");
   await page.getByLabel("Service").selectOption("tresses");
   await page.getByLabel("Coiffure").selectOption("couronne");
-  await page.getByLabel("Date").fill(future);
-  await page.getByLabel("Heure").fill("11:30");
+  await page.getByLabel("Date", { exact: true }).fill(slot.date);
+  const timeSelect = page.locator('select[name="appointmentTime"]');
+  await expect(timeSelect).toBeEnabled();
+  await timeSelect.selectOption(slot.time);
   await page.getByLabel("Localisation / adresse").fill("Lomé centre");
   await page.getByLabel("Lieu").selectOption("salon");
   await page.getByLabel("Contact préféré").selectOption("whatsapp");
@@ -24,4 +27,13 @@ test("une cliente réserve puis Princesse voit la demande", async ({ page }, tes
   await page.getByLabel("Mot de passe de Princesse").fill("princesse-local");
   await page.getByRole("button", { name: "Se connecter" }).click();
   await expect(page.getByText(customer).first()).toBeVisible();
+  const card=page.getByRole("article").filter({hasText:customer}).first();
+  await card.getByLabel(/Statut de/).selectOption("CONFIRMED");
+  await expect(card.getByLabel(/Statut de/)).toHaveValue("CONFIRMED");
+  const downloadPromise=page.waitForEvent("download");
+  await page.getByRole("button",{name:"Exporter CSV"}).click();
+  await downloadPromise;
+  await page.getByRole("button",{name:"Se déconnecter"}).click();
+  await expect(page.getByRole("heading",{name:"Bonjour Princesse"})).toBeVisible();
+  await expect((await page.request.get("/api/admin/appointments")).status()).toBe(401);
 });

@@ -19,9 +19,9 @@ export const site = {
 };
 
 export const services = [
-  { id: "tresses", name: "Tresses signature", duration: "3–5 h", price: "Tarif à confirmer", description: "Finitions soignées et style personnalisé.", category: "Tresses" },
-  { id: "perruque", name: "Pose de perruque", duration: "2–3 h", price: "Tarif à confirmer", description: "Pose naturelle et ajustement sur mesure.", category: "Perruques" },
-  { id: "naturel", name: "Soin cheveux naturels", duration: "1–2 h", price: "Tarif à confirmer", description: "Diagnostic, soin et mise en beauté.", category: "Naturel" },
+  { id: "tresses", name: "Tresses signature", duration: "4 h", durationMinutes: 240, price: "Tarif à confirmer", description: "Tressage avec finition soignée, durée variable selon la longueur et le modèle.", category: "Tresses" },
+  { id: "perruque", name: "Pose de perruque", duration: "2 h 30", durationMinutes: 150, price: "Tarif à confirmer", description: "Préparation, ajustement et pose; la personnalisation peut modifier la durée.", category: "Perruques" },
+  { id: "naturel", name: "Soin cheveux naturels", duration: "1 h 30", durationMinutes: 90, price: "Tarif à confirmer", description: "Diagnostic, soin et mise en forme adaptés à l'état des cheveux.", category: "Naturel" },
 ];
 
 export const hairstyles = [

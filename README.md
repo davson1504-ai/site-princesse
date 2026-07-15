@@ -28,9 +28,17 @@ npm run build
 
 Remplacer dans `.env.local` Gmail, WhatsApp au format international (ex. `+228...`), téléphone, horaires, services et localisation. Les valeurs temporaires sont centralisées dans `src/data/site.ts`. Ne jamais committer les secrets.
 
+### Variables de production
+
+Obligatoires : `NEXT_PUBLIC_SITE_URL`, `PRINCESSE_EMAIL`, `PRINCESSE_PHONE`, `PRINCESSE_WHATSAPP`, `PRINCESSE_TIMEZONE`, `DATABASE_URL`, `AUTH_SECRET` et `ADMIN_PASSWORD_HASH`. `DIRECT_URL` est utile lorsque le fournisseur propose une connexion directe distincte pour les migrations.
+
+Facultatives : `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`, les variables Meta `WHATSAPP_*`, les variables Turnstile et les DSN Sentry. Une intégration reste désactivée tant que son groupe de variables n'est pas complet. `src/lib/env.ts` valide la configuration sans journaliser les valeurs.
+
 ## Base de données
 
 Renseigner `DATABASE_URL`, puis `npm run prisma:generate`, `npm run prisma:migrate` et `npm run db:seed`. Le schéma et la migration initiale sont dans `prisma/`. En production, utiliser `npm run prisma:deploy`.
+
+Le fichier `data/appointments.json` est réservé au développement sans PostgreSQL. L'application refuse ce fallback en production.
 
 ## Administration de Princesse
 

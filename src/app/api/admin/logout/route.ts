@@ -1,1 +1,1 @@
-import { clearSession } from "@/lib/security/auth";export async function POST(){await clearSession();return Response.json({ok:true})}
+import { clearSession } from "@/lib/security/auth";import {auditAdminAction} from "@/lib/database/admin";export async function POST(){await clearSession();await auditAdminAction("auth.logout");return Response.json({ok:true})}

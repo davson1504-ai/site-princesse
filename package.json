@@ -2,6 +2,7 @@
   "name": "site-princesse",
   "version": "0.1.0",
   "private": true,
+  "engines": { "node": "24.x" },
   "overrides": {
     "@hono/node-server": "1.19.13",
     "postcss": "8.5.10"
@@ -10,6 +11,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "postinstall": "prisma generate",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -25,8 +27,11 @@
     "@prisma/client": "^7.8.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
+    "@sentry/nextjs": "^10.65.0",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "date-fns-tz": "^3.2.0",
     "dotenv": "^17.4.2",
     "framer-motion": "^12.42.2",
     "jose": "^6.2.3",

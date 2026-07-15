@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { hairstyles, services, site } from "@/data/site";
 import { ShowcaseLoader } from "@/components/three/showcase-loader";
+import type {Metadata} from "next";
+
+export const metadata:Metadata={alternates:{canonical:"/"}};
 
 export default function Home(){return <>
   <section className="overflow-hidden bg-[radial-gradient(circle_at_75%_30%,#ecd3c8,transparent_38%)]"><div className="mx-auto grid min-h-[72vh] max-w-6xl items-center gap-10 px-5 py-20 md:grid-cols-2"><div><p className="mb-4 text-xs uppercase tracking-[.3em] text-[#9a624d]">Beauté • précision • confiance</p><h1 className="font-serif text-5xl leading-[.95] md:text-7xl">Votre coiffure,<br/><em className="text-[#a86f43]">votre couronne.</em></h1><p className="mt-6 max-w-lg text-base leading-7 text-black/65">Princesse vous accueille pour une expérience personnalisée et des finitions qui vous ressemblent.</p><div className="mt-8 flex flex-wrap gap-3"><Link className="rounded-full bg-[#231b1b] px-6 py-3 text-white" href="/rendez-vous">Prendre rendez-vous</Link><Link className="rounded-full border border-black/20 px-6 py-3" href="/coiffures">Voir les modèles</Link></div></div><div className="relative mx-auto aspect-[4/5] w-full max-w-sm rounded-[10rem_10rem_2rem_2rem] bg-gradient-to-b from-[#d8ad9d] to-[#825a4a] shadow-2xl"><span className="absolute inset-0 grid place-items-center px-10 text-center text-sm text-white/75">Photo professionnelle de Princesse à ajouter</span></div></div></section>

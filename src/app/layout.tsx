@@ -15,7 +15,7 @@ const serif = Cormorant_Garamond({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = { metadataBase:new URL(process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3000"), title: { default: "Princesse Coiffure", template: "%s | Princesse Coiffure" }, description: "Coiffure élégante, soins personnalisés et réservation en ligne.", openGraph:{title:"Princesse Coiffure",description:"Votre coiffure, votre couronne.",type:"website",locale:"fr_FR"}, robots: { index: true, follow: true } };
+export const metadata: Metadata = { metadataBase:new URL(process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3000"), title: { default: "Princesse Coiffure", template: "%s | Princesse Coiffure" }, description: "Coiffure élégante, soins personnalisés et réservation en ligne.",openGraph:{title:"Princesse Coiffure",description:"Votre coiffure, votre couronne.",type:"website",locale:"fr_FR",url:"/"}, robots: { index: true, follow: true } };
 
 export default function RootLayout({
   children,

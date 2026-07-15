@@ -15,6 +15,12 @@ enum AppointmentStatus {
   ARCHIVED
 }
 
+enum NotificationChannel {
+  EMAIL_ADMIN
+  EMAIL_CUSTOMER
+  WHATSAPP_META
+}
+
 model Appointment {
   id                     String            @id @default(cuid())
   reference              String            @unique
@@ -24,6 +30,11 @@ model Appointment {
   email                  String?
   appointmentDate        DateTime
   appointmentTime        String
+  appointmentDateTime    DateTime
+  endsAt                 DateTime
+  timezone               String            @default("Europe/Paris")
+  durationMinutes        Int
+  quotedPrice            String?
   location               String
   appointmentType        String
   preferredContactMethod String
@@ -36,9 +47,10 @@ model Appointment {
   serviceId              String
   hairstyle              Hairstyle?        @relation(fields: [hairstyleId], references: [id])
   hairstyleId            String?
+  notifications          NotificationLog[]
 
-  @@unique([appointmentDate, appointmentTime])
   @@index([status, appointmentDate])
+  @@index([appointmentDateTime, endsAt])
 }
 
 model Service {
@@ -47,12 +59,57 @@ model Service {
   slug         String        @unique
   description  String
   duration     String
+  durationMinutes Int
   price        String?
   image        String?
   isActive     Boolean       @default(true)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   appointments Appointment[]
+}
+
+model NotificationLog {
+  id             String              @id @default(cuid())
+  appointment    Appointment         @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  appointmentId  String
+  channel        NotificationChannel
+  success        Boolean
+  providerId     String?
+  sanitizedError String?
+  createdAt      DateTime            @default(now())
+
+  @@index([appointmentId, channel, createdAt])
+  @@index([success, createdAt])
+}
+
+model AdminAuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  targetRef String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([action, createdAt])
+}
+
+model BlockedSlot {
+  id        String   @id @default(cuid())
+  startsAt  DateTime
+  endsAt    DateTime
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startsAt, endsAt])
+}
+
+model RateLimitBucket {
+  key       String   @id
+  count     Int
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([resetAt])
 }
 
 model Hairstyle {

@@ -1,0 +1,2 @@
+import {isAdmin} from "@/lib/security/auth";import {deleteBlockedSlot} from "@/lib/database/admin";
+export async function DELETE(_req:Request,ctx:RouteContext<"/api/admin/blocked-slots/[id]">){if(!(await isAdmin()))return Response.json({error:"Non autorisé"},{status:401});try{const{id}=await ctx.params;return Response.json(await deleteBlockedSlot(id))}catch{return Response.json({error:"Créneau introuvable"},{status:404})}}
