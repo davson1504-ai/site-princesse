@@ -1,0 +1,1 @@
+export default function Page(){return <article className="prose mx-auto max-w-3xl px-5 py-16"><h1>Politique de confidentialité</h1><p>Version temporaire à faire valider avant publication. Les informations de réservation servent uniquement à traiter la demande et à contacter la cliente.</p></article>}

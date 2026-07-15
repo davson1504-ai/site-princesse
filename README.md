@@ -1,0 +1,49 @@
+# Princesse Coiffure
+
+Site vitrine et socle de réservation Next.js pour Princesse, administratrice du projet.
+
+## Démarrage
+
+Prérequis : Node.js 20+ et npm. PostgreSQL est requis en production.
+
+```bash
+npm install
+copy .env.example .env.local
+npm run dev
+```
+
+Ouvrir `http://localhost:3000`. Sans `DATABASE_URL`, les rendez-vous sont conservés dans `data/appointments.json` pour le développement local. Ce stockage n'est pas adapté à Vercel.
+
+Commandes qualité :
+
+```bash
+npm run lint
+npm test
+npx playwright install chromium webkit
+npm run test:e2e
+npm run build
+```
+
+## Configuration prioritaire
+
+Remplacer dans `.env.local` Gmail, WhatsApp au format international (ex. `+228...`), téléphone, horaires, services et localisation. Les valeurs temporaires sont centralisées dans `src/data/site.ts`. Ne jamais committer les secrets.
+
+## Base de données
+
+Renseigner `DATABASE_URL`, puis `npm run prisma:generate`, `npm run prisma:migrate` et `npm run db:seed`. Le schéma et la migration initiale sont dans `prisma/`. En production, utiliser `npm run prisma:deploy`.
+
+## Administration de Princesse
+
+La route `/admin` est protégée par une session HTTP-only signée. En développement seulement, sans configuration, le mot de passe temporaire est `princesse-local`. Avant tout déploiement, générer un hash bcrypt pour `ADMIN_PASSWORD_HASH` et un secret aléatoire long pour `AUTH_SECRET`.
+
+## Email et WhatsApp
+
+Voir `SETUP_EMAIL.md` et `SETUP_WHATSAPP.md`. Les échecs de notification sont enregistrés sans supprimer le rendez-vous. Un lien `wa.me` ouvre seulement un message prérempli : la cliente doit valider manuellement. L'envoi automatique exige Meta WhatsApp Cloud API.
+
+## Contenu et modèle 3D
+
+Ajouter les photos licenciées dans `public/images` et documenter leur provenance dans `CONTENT_GUIDE.md`. Ajouter le futur modèle `.glb` dans `public/models`; prévoir un fallback statique sur appareils faibles.
+
+## Déploiement
+
+Voir `DEPLOYMENT.md`. Configurer les variables Vercel, PostgreSQL, Resend et Meta, appliquer les migrations, puis lancer `npm run build`.

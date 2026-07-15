@@ -1,0 +1,1 @@
+"use client";import dynamic from "next/dynamic";const Showcase=dynamic(()=>import("./hair-showcase").then(x=>x.HairShowcase),{ssr:false,loading:()=> <div className="grid h-[430px] place-items-center rounded-[4rem] bg-[#ead8cf]">Chargement de l’expérience 3D…</div>});export function ShowcaseLoader(){return <Showcase/>}

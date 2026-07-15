@@ -1,0 +1,1 @@
+import type {MetadataRoute} from "next";export default function manifest():MetadataRoute.Manifest{return{name:"Princesse Coiffure",short_name:"Princesse",description:"Réservation et modèles de coiffure",start_url:"/",display:"standalone",background_color:"#fffaf6",theme_color:"#a86f43",lang:"fr"}}

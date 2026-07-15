@@ -1,0 +1,1 @@
+import {describe,expect,it} from "vitest";import {appointmentSchema,makeReference} from "@/lib/validation/appointment";describe("rendez-vous",()=>{it("génère une référence",()=>expect(makeReference()).toMatch(/^PC-\d{8}-[A-Z0-9]{6}$/));it("refuse un numéro invalide",()=>{const result=appointmentSchema.safeParse({});expect(result.success).toBe(false)})});

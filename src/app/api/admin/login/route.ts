@@ -1,0 +1,2 @@
+import { createSession,validPassword } from "@/lib/security/auth";import { rateLimit } from "@/lib/security/rate-limit";
+export async function POST(req:Request){const ip=req.headers.get("x-forwarded-for")||"local";if(!rateLimit(`login:${ip}`,5,15*60_000))return Response.json({error:"Trop de tentatives. Réessayez plus tard."},{status:429});const {password}=await req.json();if(typeof password!=="string"||!(await validPassword(password)))return Response.json({error:"Mot de passe incorrect"},{status:401});await createSession();return Response.json({ok:true})}

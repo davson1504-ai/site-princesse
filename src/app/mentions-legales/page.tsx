@@ -1,0 +1,1 @@
+export default function Page(){return <article className="prose mx-auto max-w-3xl px-5 py-16"><h1>Mentions légales</h1><p>[IDENTITÉ, ADRESSE, HÉBERGEUR ET CONTACT À REMPLACER AVANT MISE EN LIGNE]</p></article>}

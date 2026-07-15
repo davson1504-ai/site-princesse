@@ -1,0 +1,1 @@
+import {describe,expect,it} from "vitest";import {formatFrenchPhone} from "@/data/site";describe("coordonnées",()=>{it("affiche le numéro français par paires",()=>{expect(formatFrenchPhone("0745238006")).toBe("07 45 23 80 06");expect(formatFrenchPhone("+33745238006")).toBe("07 45 23 80 06")})});

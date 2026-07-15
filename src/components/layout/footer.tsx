@@ -1,0 +1,3 @@
+import Link from "next/link";
+import { site } from "@/data/site";
+export function Footer(){return <footer className="mt-auto bg-[#231b1b] text-[#fffaf6]"><div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 md:grid-cols-3"><div><p className="font-serif text-2xl">Princesse Coiffure</p><p className="mt-3 text-sm text-white/65">Élégance, soin et savoir-faire.</p></div><div><p className="font-medium">Contact</p><p className="mt-3 text-sm text-white/65">{site.email}<br/>{site.phone}<br/>{site.address}</p></div><div className="text-sm"><Link href="/confidentialite">Confidentialité</Link><br/><Link href="/mentions-legales">Mentions légales</Link><br/><Link href="/admin">Administration</Link></div></div></footer>}

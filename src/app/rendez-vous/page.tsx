@@ -1,0 +1,2 @@
+import { Suspense } from "react";import { BookingForm } from "@/components/booking/booking-form";
+export default function Page(){return <div className="mx-auto max-w-3xl px-5 py-16"><p className="text-xs uppercase tracking-[.25em] text-[#9a624d]">Réservation</p><h1 className="mt-2 font-serif text-5xl">Votre prochain rendez-vous</h1><p className="my-8 text-black/60">La demande sera enregistrée. Elle reste à confirmer par Princesse.</p><Suspense><BookingForm/></Suspense></div>}

@@ -1,0 +1,1 @@
+import Link from "next/link";export default function NotFound(){return <div className="mx-auto px-5 py-28 text-center"><p className="font-serif text-8xl">404</p><h1 className="mt-4 text-2xl">Cette page n’existe pas.</h1><Link href="/" className="mt-6 inline-block underline">Retour à l’accueil</Link></div>}

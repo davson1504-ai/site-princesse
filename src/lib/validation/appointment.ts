@@ -1,0 +1,4 @@
+import { z } from "zod";
+export const appointmentSchema=z.object({customerName:z.string().trim().min(2,"Nom requis"),phone:z.string().regex(/^\+?[0-9 ]{8,16}$/,"Numéro invalide"),whatsapp:z.string().regex(/^\+?[0-9 ]{8,16}$/,"WhatsApp invalide"),email:z.string().email().optional().or(z.literal("")),serviceId:z.string().min(1),hairstyleId:z.string().optional(),appointmentDate:z.string().refine(v=>new Date(v+"T23:59:59")>=new Date(),"Choisissez une date future"),appointmentTime:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),location:z.string().min(3),appointmentType:z.enum(["salon","domicile"]),preferredContactMethod:z.enum(["whatsapp","telephone","email"]),message:z.string().max(1000).optional(),website:z.literal("").optional(),privacy:z.literal(true)});
+export type AppointmentInput=z.infer<typeof appointmentSchema>;
+export const makeReference=()=>`PC-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${crypto.randomUUID().slice(0,6).toUpperCase()}`;
