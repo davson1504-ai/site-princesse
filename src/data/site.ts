@@ -2,6 +2,24 @@ export const SITE_NAME = "Beauty Haïr by Nao";
 export const SITE_SLUG = "beauty-hair-by-nao";
 export const MAX_ACTIVE_BOOKING_DATES = 7;
 
+export const imageAlts: Record<string, string> = {
+  "/images/hairstyles/cheveux-naturels-afro.jpeg": "Coiffure naturelle afro fournie par la cliente",
+  "/images/hairstyles/crochet-braids-boucles-noires.jpeg": "Crochet braids longues et bouclées",
+  "/images/hairstyles/faux-locks-longues.jpeg": "Faux locks longues",
+  "/images/hairstyles/queue-de-cheval-cuivree-profil.jpeg": "Queue-de-cheval lisse cuivrée vue de profil",
+  "/images/hairstyles/queue-de-cheval-cuivree-dessus.jpeg": "Queue-de-cheval lisse cuivrée vue du dessus",
+  "/images/hairstyles/box-braids-blondes-face.jpeg": "Box braids blondes vues de face",
+  "/images/hairstyles/box-braids-blondes-profil.jpeg": "Box braids blondes vues de profil",
+  "/images/products/ampoules-aurodhea-soin-intensif-48-euros.jpeg": "Ampoules Aurodhea soin intensif",
+  "/images/products/duo-aurodhea-bave-escargot.jpeg": "Duo Aurodhea shampoing et après-shampoing",
+  "/images/products/gamme-aurodhea-anti-chute.jpeg": "Comparatif de références de la gamme Aurodhea",
+  "/images/products/guide-shampoings-aurodhea-par-type-cheveux.jpeg": "Guide des shampoings Aurodhea par type de cheveux",
+  "/images/products/lotion-aurodhea-anti-chute-50-euros.jpeg": "Lotion capillaire Aurodhea 50 ml",
+  "/images/products/lotion-chogan-rafraichissante-24-90-euros.jpeg": "Lotion capillaire rafraîchissante Chogan",
+  "/images/products/shampoing-aurodhea-anti-chute-19-90-euros.jpeg": "Shampoing Aurodhea pour cheveux fragiles 250 ml",
+  "/images/products/shampoing-aurodhea-antipelliculaire-acide-salicylique.jpeg": "Shampoing Aurodhea antipelliculaire à l’acide salicylique",
+};
+
 export function formatFrenchPhone(value: string) {
   const digits = value.replace(/\D/g, "");
   if (digits.length === 10 && digits.startsWith("0")) return digits.match(/.{1,2}/g)?.join(" ") ?? value;
@@ -35,7 +53,7 @@ export const hairstyles = [
   { id:"box-braids-blondes",name:"Box braids blondes",category:"Tresses",duration:"À confirmer",price:"À partir de 50 €",image:"/images/hairstyles/box-braids-blondes-face.jpeg",images:["/images/hairstyles/box-braids-blondes-face.jpeg","/images/hairstyles/box-braids-blondes-profil.jpeg"],alt:"Box braids blondes" },
 ];
 
-export type Product = {slug:string;name:string;brand:string;category:string;description:string;code?:string;priceCents?:number;priceStatus:"CONFIRMED"|"VERIFY"|"MISSING";format?:string;imagePath:string;featured:boolean};
+export type Product = {slug:string;name:string;brand:string;category:string;description:string;code?:string;priceCents?:number;priceStatus:"CONFIRMED"|"VERIFY"|"MISSING";format?:string;imagePath:string;featured:boolean;available?:boolean};
 export const products: Product[] = [
  {slug:"ampoules-aurodhea-soin-intensif",name:"Ampoules, soin intensif",brand:"Aurodhea",category:"Soin",description:"Soin capillaire en ampoules.",priceCents:4800,priceStatus:"CONFIRMED",format:"10 ampoules de 3 ml",imagePath:"/images/products/ampoules-aurodhea-soin-intensif-48-euros.jpeg",featured:true},
  {slug:"lotion-aurodhea-undaria",name:"Lotion capillaire à l’Undaria pinnatifida",brand:"Aurodhea",category:"Lotion",description:"Lotion capillaire de la gamme Aurodhea.",priceCents:5000,priceStatus:"CONFIRMED",format:"50 ml",imagePath:"/images/products/lotion-aurodhea-anti-chute-50-euros.jpeg",featured:true},

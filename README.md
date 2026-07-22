@@ -1,6 +1,6 @@
 # Beauty Haïr by Nao
 
-Site vitrine et socle de réservation Next.js pour Princesse, administratrice du projet.
+Site vitrine et socle de réservation Next.js de Beauty Haïr by Nao.
 
 ## Démarrage
 

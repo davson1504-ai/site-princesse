@@ -1,2 +1,120 @@
-"use client";import Image from"next/image";import Link from"next/link";import{useMemo,useState}from"react";import{X}from"lucide-react";import{hairstyles as fallback}from"@/data/site";export type HairstyleCard=(typeof fallback)[number];
-export function GalleryBrowser({items=fallback}:{items?:HairstyleCard[]}){const[category,setCategory]=useState("Toutes"),[selected,setSelected]=useState<HairstyleCard|null>(null),[view,setView]=useState(0);const categories=["Toutes",...new Set(items.map(x=>x.category))];const visible=useMemo(()=>items.filter(x=>category==="Toutes"||x.category===category),[items,category]);return <><div className="mt-8 flex flex-wrap gap-2" role="group" aria-label="Filtrer par catégorie">{categories.map(c=><button key={c} onClick={()=>setCategory(c)} aria-pressed={category===c} className="rounded-full border px-4 py-2 aria-pressed:bg-[#231b1b] aria-pressed:text-white">{c}</button>)}</div><div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{visible.map((x,i)=><article className="overflow-hidden rounded-3xl bg-white shadow-sm" key={x.id}><button onClick={()=>{setSelected(x);setView(0)}} className="relative block aspect-[4/5] w-full bg-[#d8ad9d]" aria-label={`Agrandir ${x.name}`}><Image src={x.image} alt={x.alt} fill priority={i===0} sizes="(max-width:640px) 100vw,33vw" className="object-cover"/></button><div className="p-6"><p className="text-xs uppercase tracking-widest">{x.category}</p><h2 className="font-serif text-3xl">{x.name}</h2><p className="mt-2 font-medium">{x.price}</p><Link href={`/rendez-vous?coiffure=${x.id}&service=${x.category==="Tresses"?"tresses":"naturel"}`} className="mt-5 inline-block underline">Choisir cette coiffure</Link></div></article>)}</div>{selected&&<div role="dialog" aria-modal="true" aria-label={selected.name} className="fixed inset-0 z-[70] grid place-items-center bg-black/80 p-5"><div className="relative w-full max-w-3xl overflow-hidden rounded-3xl bg-white"><button autoFocus onClick={()=>setSelected(null)} aria-label="Fermer l’aperçu" className="absolute right-3 top-3 z-10 grid size-10 place-items-center rounded-full bg-white"><X/></button><div className="relative aspect-[4/5]"><Image src={selected.images[view]} alt={`${selected.alt}, vue ${view+1}`} fill sizes="90vw" className="object-contain"/></div>{selected.images.length>1&&<div className="flex justify-center gap-3 p-3">{selected.images.map((_,i)=><button className="rounded-full border px-4 py-2" aria-pressed={view===i} onClick={()=>setView(i)} key={i}>Vue {i+1}</button>)}</div>}</div></div>}</>}
+"use client";
+import Image from "next/image";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { X } from "lucide-react";
+import { hairstyles as fallback, imageAlts } from "@/data/site";
+export type HairstyleCard = (typeof fallback)[number];
+export function GalleryBrowser({
+  items = fallback,
+}: {
+  items?: HairstyleCard[];
+}) {
+  const [category, setCategory] = useState("Toutes"),
+    [selected, setSelected] = useState<HairstyleCard | null>(null),
+    [view, setView] = useState(0);
+  const categories = ["Toutes", ...new Set(items.map((x) => x.category))];
+  const visible = useMemo(
+    () => items.filter((x) => category === "Toutes" || x.category === category),
+    [items, category],
+  );
+  return (
+    <>
+      <div
+        className="mt-8 flex flex-wrap gap-2"
+        role="group"
+        aria-label="Filtrer par catégorie"
+      >
+        {categories.map((c) => (
+          <button
+            key={c}
+            onClick={() => setCategory(c)}
+            aria-pressed={category === c}
+            className="rounded-full border px-4 py-2 aria-pressed:bg-[#231b1b] aria-pressed:text-white"
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {visible.map((x, i) => (
+          <article
+            className="overflow-hidden rounded-3xl bg-white shadow-sm"
+            key={x.id}
+          >
+            <button
+              onClick={() => {
+                setSelected(x);
+                setView(0);
+              }}
+              className="relative block aspect-[4/5] w-full bg-[#d8ad9d]"
+              aria-label={`Agrandir ${x.name}`}
+            >
+              <Image
+                src={x.image}
+                alt={imageAlts[x.image] || x.alt}
+                fill
+                priority={i === 0}
+                sizes="(max-width:640px) 100vw,33vw"
+                className="object-cover"
+              />
+            </button>
+            <div className="p-6">
+              <p className="text-xs uppercase tracking-widest">{x.category}</p>
+              <h2 className="font-serif text-3xl">{x.name}</h2>
+              <p className="mt-2 font-medium">{x.price}</p>
+              <Link
+                href={`/rendez-vous?coiffure=${x.id}&service=${x.category === "Tresses" ? "tresses" : "naturel"}`}
+                className="mt-5 inline-block underline"
+              >
+                Choisir cette coiffure
+              </Link>
+            </div>
+          </article>
+        ))}
+      </div>
+      {selected && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={selected.name}
+          className="fixed inset-0 z-[70] grid place-items-center bg-black/80 p-5"
+        >
+          <div className="relative w-full max-w-3xl overflow-hidden rounded-3xl bg-white">
+            <button
+              autoFocus
+              onClick={() => setSelected(null)}
+              aria-label="Fermer l’aperçu"
+              className="absolute right-3 top-3 z-10 grid size-10 place-items-center rounded-full bg-white"
+            >
+              <X />
+            </button>
+            <div className="relative aspect-[4/5]">
+              <Image
+                src={selected.images[view]}
+                alt={imageAlts[selected.images[view]] || `${selected.alt}, vue ${view + 1}`}
+                fill
+                sizes="90vw"
+                className="object-contain"
+              />
+            </div>
+            {selected.images.length > 1 && (
+              <div className="flex justify-center gap-3 p-3">
+                {selected.images.map((_, i) => (
+                  <button
+                    className="rounded-full border px-4 py-2"
+                    aria-pressed={view === i}
+                    onClick={() => setView(i)}
+                    key={i}
+                  >
+                    Vue {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
