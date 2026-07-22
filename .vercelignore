@@ -1,0 +1,6 @@
+.env*
+.neon
+.agents
+data/*.json
+playwright-report
+test-results

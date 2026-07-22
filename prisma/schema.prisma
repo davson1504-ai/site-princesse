@@ -53,10 +53,14 @@ model Appointment {
   estimatedPriceCents    Int?
   selectedProductNote    String?
   availabilityDateId     String?
+  serviceVariant         ServiceVariant?           @relation(fields: [serviceVariantId], references: [id])
+  availabilityDate       BookingAvailabilityDate?  @relation(fields: [availabilityDateId], references: [id])
   notifications          NotificationLog[]
 
   @@index([status, appointmentDate])
   @@index([appointmentDateTime, endsAt])
+  @@index([serviceVariantId])
+  @@index([availabilityDateId])
 }
 
 model ServiceVariant {
@@ -70,6 +74,7 @@ model ServiceVariant {
   extraLengthCents     Int      @default(1000)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+  appointments         Appointment[]
 }
 
 model Product {
@@ -105,6 +110,7 @@ model BookingAvailabilityDate {
   createdBy String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  appointments Appointment[]
   @@index([isPublished, date])
 }
 
