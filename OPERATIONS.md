@@ -20,7 +20,9 @@
 3. Publier la date : elle apparaît en vert dans le calendrier public.
 4. Dépublier la date pour bloquer toute nouvelle réservation ; les rendez-vous existants sont conservés.
 
-Les tarifs se gèrent dans `/admin/tarifs` et sont stockés en centimes : XS 11000, S 9000, M 7000, L 5000, supplément longueur 1000.
+Le compteur ne peut dépasser 7 dates futures. Orange indique une date publiée comportant déjà des rendez-vous ; rouge indique une date dépubliée dont les rendez-vous sont conservés. Une date complète est grisée côté client.
+
+Les tarifs se gèrent dans `/admin/tarifs` et sont stockés en centimes : XS 11000, S 9000, M 7000, L 5000, supplément longueur 1000. Chaque prix et chaque supplément doivent rester positifs ou nuls.
 
 ## Sauvegarde et rollback
 

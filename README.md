@@ -44,7 +44,7 @@ Le fichier `data/appointments.json` est réservé au développement sans Postgre
 
 La route `/admin` est protégée par une session HTTP-only signée. En développement seulement, sans configuration, le mot de passe temporaire est `princesse-local`. Avant tout déploiement, générer un hash bcrypt pour `ADMIN_PASSWORD_HASH` et un secret aléatoire long pour `AUTH_SECRET`.
 
-L'administration permet de gérer les rendez-vous, les dates réellement ouvertes, les coiffures, le catalogue produit et les quatre tarifs de tresses. Une date doit être publiée dans `/admin/disponibilites` avant d'être réservable côté public.
+L'administration permet de gérer les rendez-vous, les dates réellement ouvertes, les coiffures, le catalogue produit et les quatre tarifs de tresses. Le tableau de bord synthétise dates publiées, rendez-vous, demandes, produits et coiffures. Une date doit être publiée dans `/admin/disponibilites` avant d'être réservable côté public ; sept dates futures peuvent être ouvertes simultanément.
 
 ## Email et WhatsApp
 

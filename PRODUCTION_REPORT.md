@@ -6,7 +6,7 @@ Date : 22 juillet 2026
 
 - Production : https://site-princesse.vercel.app
 - Administration : https://site-princesse.vercel.app/admin
-- Preview validée : https://site-princesse-pvvozk2uy-davson1504s-projects.vercel.app
+- Preview validée : https://site-princesse-qj4gbsjp8-davson1504s-projects.vercel.app
 - Projet Vercel : `site-princesse`
 - Base : Neon PostgreSQL, projet `princesse-db`
 - Branche Preview isolée : `preview-beauty-hair-by-nao`
@@ -20,7 +20,8 @@ Date : 22 juillet 2026
 - Tarifs tresses : XS 110 €, S 90 €, M 70 €, L 50 €, supplément longueur +10 €.
 - Calendrier public limité aux dates explicitement publiées par l'administratrice.
 - Administration des disponibilités, coiffures, produits et tarifs avec audit des mutations.
-- Réservation atomique, limitation à 7 rendez-vous par jour et refus serveur d'une date dépubliée.
+- Réservation atomique, maximum de 7 dates futures publiées simultanément et refus serveur d'une date dépubliée.
+- Tableau de bord global, calendrier mensuel accessible, états vert/orange/rouge/gris et dates complètes annoncées.
 
 ## Migration et données
 
@@ -32,14 +33,18 @@ Date : 22 juillet 2026
 ## Vérifications
 
 - `npm run lint` : réussi.
-- `npm test` : 22 tests réussis.
-- `npm run test:e2e` : 7 réussis, 1 scénario mobile de concurrence ignoré conformément à la configuration du projet ; la concurrence est couverte sur Chromium.
+- `npm test` : 29 tests réussis dans 9 fichiers.
+- `npm run test:e2e` : 10 réussis, 2 règles serveur exécutées uniquement sur Chromium et ignorées sur mobile ; le parcours complet passe sur bureau et mobile.
 - `npm run build` : réussi avec Next.js 16.2.10.
 - `npm audit` : 0 vulnérabilité.
 - Production : pages principales et administration HTTP 200.
 - `/api/health` : `application=ok`, `database=ok`.
 - `/api/pricing` : XS/S/M/L et supplément conformes.
-- Les E2E couvrent publication, réservation M à 70 €, supplément à 80 €, affichage admin, dépublication et refus HTTP 409.
+- Les E2E couvrent publication, refus de la huitième date et d'une date passée, réservation M à 70 €, supplément à 80 €, affichage admin, dépublication, conservation puis archivage et refus HTTP 409.
+- Test réel Preview : réservation `PC-20260722-3FA3B7` créée avec taille M, longueur supérieure et estimation 80 €, doublon refusé HTTP 409, rendez-vous conservé après dépublication puis archivé.
+- Test réel de date grisée Preview : demande refusée HTTP 409 et aucune ligne Appointment créée.
+- Seed Preview exécuté deux fois : comptes inchangés (9 rendez-vous initiaux, 12 produits/slugs uniques, 8 coiffures/slugs uniques dont 5 actives, 4 variantes).
+- Nettoyage Preview : 0 date publiée ; le rendez-vous de validation est archivé conformément à la procédure d'exploitation.
 
 ## Intégrations et limites
 
