@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { hairstyles, services } from "@/data/site";
 import Script from "next/script";
+import { braidPrices, estimateBraidPrice, formatEUR, type BraidSize } from "@/lib/pricing";
 
 export function BookingForm() {
   const params = useSearchParams();
@@ -12,6 +13,9 @@ export function BookingForm() {
   const [date, setDate] = useState("");
   const [slots, setSlots] = useState<string[]>([]);
   const [availabilityVersion, setAvailabilityVersion] = useState(0);
+  const [dates,setDates]=useState<string[]>([]);const[size,setSize]=useState<BraidSize>("M");const[extra,setExtra]=useState(false);
+
+  useEffect(()=>{fetch("/api/availability").then(r=>r.json()).then(data=>setDates(data.dates||[])).catch(()=>setDates([]))},[]);
 
   useEffect(() => {
     if (!date || !service) return;
@@ -36,8 +40,9 @@ export function BookingForm() {
     <Field label="Nom complet" name="customerName"/><Field label="Téléphone" name="phone" type="tel"/>
     <Field label="WhatsApp (format international)" name="whatsapp" type="tel"/><Field label="Email (facultatif)" name="email" type="email" optional/>
     <label>Service<select required name="serviceId" value={service} onChange={(event) => { setService(event.target.value); setSlots([]); }} className="mt-2 w-full rounded-xl border border-black/15 bg-white p-3">{services.map((item) => <option value={item.id} key={item.id}>{item.name} · {item.duration}</option>)}</select></label>
-    <Select label="Coiffure" name="hairstyleId" defaultValue={params.get("coiffure") || hairstyles[0].id} options={hairstyles.map((item) => [item.id, item.name])}/>
-    <label>Date<input required name="appointmentDate" type="date" value={date} min={new Date().toISOString().slice(0,10)} onChange={(event) => { setDate(event.target.value); setSlots([]); setError(""); }} className="mt-2 w-full rounded-xl border border-black/15 bg-white p-3"/></label>
+    <Select label="Coiffure" name="hairstyleId" defaultValue={params.get("coiffure") || hairstyles[0].id} options={[...hairstyles.map((item) => [item.id, item.name]),["couronne","Couronne bohème"]]}/>
+    {service==="tresses"&&<fieldset className="md:col-span-2 rounded-2xl border p-4"><legend className="px-2 font-medium">Taille des tresses</legend><div className="grid gap-3 sm:grid-cols-4">{(Object.keys(braidPrices)as BraidSize[]).map(code=><label key={code} className="rounded-xl border p-3"><input type="radio" name="braidSizeCode" value={code} checked={size===code} onChange={()=>setSize(code)}/> {code} · à partir de {formatEUR(braidPrices[code])}</label>)}</div><label className="mt-4 flex gap-2"><input type="checkbox" name="extraLength" checked={extra} onChange={e=>setExtra(e.target.checked)}/>Longueur supérieure (+10 €)</label><p className="mt-3 font-semibold">Estimation : à partir de {formatEUR(estimateBraidPrice(size,extra))}</p><input type="hidden" name="estimatedPriceCents" value={estimateBraidPrice(size,extra)}/><p className="text-xs text-black/60">Estimation non contractuelle, confirmée après échange.</p></fieldset>}
+    <label>Date<input aria-label="Date" required name="appointmentDate" type="date" value={date} min={new Date().toISOString().slice(0,10)} onChange={(event) => { setDate(event.target.value); setSlots([]); setError(""); }} className="mt-2 w-full rounded-xl border border-black/15 bg-white p-3"/><span className="mt-1 block text-xs text-black/55">Dates publiées : {dates.length?dates.map(d=>new Date(`${d}T12:00:00`).toLocaleDateString("fr-FR")).join(" · "):"aucune actuellement"}.</span></label>
     <label>Heure<select required name="appointmentTime" disabled={!date || slots.length === 0} className="mt-2 w-full rounded-xl border border-black/15 bg-white p-3 disabled:opacity-60"><option value="">{slots.length ? "Choisir un créneau" : date ? "Chargement ou aucun créneau" : "Choisissez d'abord une date"}</option>{slots.map((slot) => <option value={slot} key={slot}>{slot}</option>)}</select></label>
     <Field label="Localisation / adresse" name="location"/><Select label="Lieu" name="appointmentType" options={[["salon","Au salon"],["domicile","À domicile"]]}/>
     <Select label="Contact préféré" name="preferredContactMethod" options={[["whatsapp","WhatsApp"],["telephone","Téléphone"],["email","Email"]]}/>
