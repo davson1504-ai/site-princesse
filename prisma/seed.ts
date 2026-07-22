@@ -1,13 +1,2 @@
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { hairstyles, services } from "../src/data/site";
-
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
-const prisma = new PrismaClient({ adapter });
-
-async function main() {
-  for (const service of services) await prisma.service.upsert({ where: { slug: service.id }, update: { durationMinutes: service.durationMinutes }, create: { name: service.name, slug: service.id, description: service.description, duration: service.duration, durationMinutes: service.durationMinutes, price: service.price } });
-  for (const style of hairstyles) await prisma.hairstyle.upsert({ where: { slug: style.id }, update: {}, create: { name: style.name, slug: style.id, category: style.category, description: "Description à personnaliser", duration: style.duration, mainImage: style.image, galleryImages: [] } });
-}
-
-main().finally(() => prisma.$disconnect());
+import"dotenv/config";import{PrismaClient}from"@prisma/client";import{PrismaPg}from"@prisma/adapter-pg";import{hairstyles,products,services}from"../src/data/site";import{braidPrices,EXTRA_LENGTH_CENTS}from"../src/lib/pricing";const prisma=new PrismaClient({adapter:new PrismaPg({connectionString:process.env.DATABASE_URL!})});
+async function main(){for(const s of services)await prisma.service.upsert({where:{slug:s.id},update:{durationMinutes:s.durationMinutes},create:{name:s.name,slug:s.id,description:s.description,duration:s.duration,durationMinutes:s.durationMinutes,price:s.price}});await prisma.hairstyle.updateMany({where:{slug:{in:["couronne","silk","twists"]}},data:{isActive:false,isFeatured:false}});for(const h of hairstyles)await prisma.hairstyle.upsert({where:{slug:h.id},update:{name:h.name,category:h.category,mainImage:h.image,galleryImages:h.images},create:{name:h.name,slug:h.id,category:h.category,description:"Modèle fourni par la cliente.",duration:h.duration,price:h.price,mainImage:h.image,galleryImages:h.images,isFeatured:h.id==="box-braids-blondes"}});for(const[order,code]of(Object.keys(braidPrices)as(keyof typeof braidPrices)[]).entries())await prisma.serviceVariant.upsert({where:{code},update:{},create:{serviceSlug:"tresses",code,label:{XS:"Extra Small — très fines",S:"Small — fines",M:"Medium — moyennes",L:"Large — grosses"}[code],priceCents:braidPrices[code],displayOrder:order,extraLengthCents:EXTRA_LENGTH_CENTS}});for(const[index,p]of products.entries())await prisma.product.upsert({where:{slug:p.slug},update:{},create:{...p,active:true,available:true,displayOrder:index}})}main().finally(()=>prisma.$disconnect());

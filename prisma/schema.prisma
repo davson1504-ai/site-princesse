@@ -47,10 +47,71 @@ model Appointment {
   serviceId              String
   hairstyle              Hairstyle?        @relation(fields: [hairstyleId], references: [id])
   hairstyleId            String?
+  serviceVariantId       String?
+  braidSizeCode          String?
+  extraLength            Boolean           @default(false)
+  estimatedPriceCents    Int?
+  selectedProductNote    String?
+  availabilityDateId     String?
+  serviceVariant         ServiceVariant?           @relation(fields: [serviceVariantId], references: [id])
+  availabilityDate       BookingAvailabilityDate?  @relation(fields: [availabilityDateId], references: [id])
   notifications          NotificationLog[]
 
   @@index([status, appointmentDate])
   @@index([appointmentDateTime, endsAt])
+  @@index([serviceVariantId])
+  @@index([availabilityDateId])
+}
+
+model ServiceVariant {
+  id                   String   @id @default(cuid())
+  serviceSlug          String
+  code                 String   @unique
+  label                String
+  priceCents           Int
+  displayOrder         Int
+  active               Boolean  @default(true)
+  extraLengthCents     Int      @default(1000)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  appointments         Appointment[]
+}
+
+model Product {
+  id String @id @default(cuid())
+  slug String @unique
+  name String
+  brand String
+  category String
+  description String
+  code String?
+  priceCents Int?
+  priceStatus String
+  format String?
+  imagePath String
+  active Boolean @default(true)
+  featured Boolean @default(false)
+  available Boolean @default(true)
+  displayOrder Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BookingAvailabilityDate {
+  id String @id @default(cuid())
+  date DateTime @unique @db.Date
+  isPublished Boolean @default(false)
+  startMinutes Int @default(540)
+  endMinutes Int @default(1080)
+  breakStartMinutes Int?
+  breakEndMinutes Int?
+  slotIntervalMinutes Int @default(30)
+  note String?
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  appointments Appointment[]
+  @@index([isPublished, date])
 }
 
 model Service {

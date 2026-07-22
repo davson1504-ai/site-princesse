@@ -3,6 +3,7 @@ export type AppointmentStatus = (typeof appointmentStatuses)[number];
 export type AppointmentRecord = {
   id: string; reference: string; customerName: string; phone: string; whatsapp: string;
   email?: string; serviceId: string; hairstyleId?: string; appointmentDate: string;
+  serviceVariantId?: string; braidSizeCode?: "XS"|"S"|"M"|"L"; extraLength?: boolean; estimatedPriceCents?: number; selectedProductNote?: string;
   appointmentTime: string; appointmentDateTime?: string; endsAt?: string; timezone?: string; durationMinutes?: number; quotedPrice?: string; location: string; appointmentType: "salon" | "domicile";
   preferredContactMethod: "whatsapp" | "telephone" | "email"; message?: string;
   status: AppointmentStatus; notificationErrors?: string[]; createdAt: string; updatedAt: string;

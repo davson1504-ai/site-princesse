@@ -6,20 +6,332 @@ import { appointmentRange } from "@/lib/booking/availability";
 import { services } from "@/data/site";
 import { getPrisma } from "./prisma";
 
-const file = path.join(process.cwd(), "data", "appointments.json");
+const file = path.join(
+  process.cwd(),
+  process.env.E2E_DATA_DIR || "data",
+  "appointments.json",
+);
 export class AppointmentConflictError extends Error {}
-let localLock:Promise<void>=Promise.resolve();
-async function exclusive<T>(operation:()=>Promise<T>){const previous=localLock;let release!:()=>void;localLock=new Promise<void>(resolve=>{release=resolve});await previous;try{return await operation()}finally{release()}}
+let localLock: Promise<void> = Promise.resolve();
+async function exclusive<T>(operation: () => Promise<T>) {
+  const previous = localLock;
+  let release!: () => void;
+  localLock = new Promise<void>((resolve) => (release = resolve));
+  await previous;
+  try {
+    return await operation();
+  } finally {
+    release();
+  }
+}
+async function readLocal(): Promise<AppointmentRecord[]> {
+  try {
+    return JSON.parse(await fs.readFile(file, "utf8"));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw error;
+  }
+}
+async function writeLocal(items: AppointmentRecord[]) {
+  if (process.env.NODE_ENV === "production")
+    throw new Error("Stockage local interdit en production");
+  await fs.mkdir(path.dirname(file), { recursive: true });
+  const temp = `${file}.${crypto.randomUUID()}.tmp`;
+  await fs.writeFile(temp, JSON.stringify(items, null, 2), "utf8");
+  await fs.rename(temp, file);
+}
 
-async function readLocal(): Promise<AppointmentRecord[]> { try { return JSON.parse(await fs.readFile(file, "utf8")); } catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return []; throw error; } }
-async function writeLocal(items: AppointmentRecord[]) { if (process.env.NODE_ENV === "production") throw new Error("Stockage local interdit en production"); await fs.mkdir(path.dirname(file), { recursive: true });const temporary=`${file}.${crypto.randomUUID()}.tmp`;await fs.writeFile(temporary,JSON.stringify(items,null,2),"utf8");await fs.rename(temporary,file); }
-type DbAppointment={id:string;reference:string;customerName:string;phone:string;whatsapp:string;email:string|null;service:{slug:string};hairstyle:{slug:string}|null;appointmentDate:Date;appointmentTime:string;appointmentDateTime:Date;endsAt:Date;timezone:string;durationMinutes:number;quotedPrice:string|null;location:string;appointmentType:string;preferredContactMethod:string;message:string|null;status:string;notificationErrors:unknown;createdAt:Date;updatedAt:Date};
-function fromDb(x:DbAppointment):AppointmentRecord{return{...x,email:x.email||undefined,serviceId:x.service.slug,hairstyleId:x.hairstyle?.slug,appointmentDate:x.appointmentDate.toISOString().slice(0,10),appointmentDateTime:x.appointmentDateTime.toISOString(),endsAt:x.endsAt.toISOString(),quotedPrice:x.quotedPrice||undefined,appointmentType:x.appointmentType as AppointmentRecord["appointmentType"],preferredContactMethod:x.preferredContactMethod as AppointmentRecord["preferredContactMethod"],message:x.message||undefined,status:x.status as AppointmentStatus,notificationErrors:Array.isArray(x.notificationErrors)?x.notificationErrors as string[]:undefined,createdAt:x.createdAt.toISOString(),updatedAt:x.updatedAt.toISOString()};}
-
-export function serviceDetails(serviceId:string){return services.find((service)=>service.id===serviceId)??null;}
-export async function hasConflict(date:string,time:string,durationMinutes:number){const{start,end}=appointmentRange(date,time,durationMinutes);const db=getPrisma();if(db){const [appointment,blocked]=await Promise.all([db.appointment.findFirst({where:{appointmentDateTime:{lt:end},endsAt:{gt:start},status:{in:["PENDING","CONFIRMED"]}}}),db.blockedSlot.findFirst({where:{startsAt:{lt:end},endsAt:{gt:start}}})]);return Boolean(appointment||blocked);}return(await readLocal()).some(x=>{if(!x.appointmentDateTime||!x.endsAt)return x.appointmentDate===date&&x.appointmentTime===time;return new Date(x.appointmentDateTime)<end&&new Date(x.endsAt)>start&&!(["CANCELLED","REFUSED","ARCHIVED"] as string[]).includes(x.status)});}
-export async function createAppointment(input:AppointmentInput,reference:string):Promise<AppointmentRecord>{const details=serviceDetails(input.serviceId);if(!details)throw new Error("Service introuvable");const{start,end}=appointmentRange(input.appointmentDate,input.appointmentTime,details.durationMinutes);const now=new Date().toISOString();const db=getPrisma();if(db){try{return await db.$transaction(async(tx)=>{const conflict=await tx.appointment.findFirst({where:{appointmentDateTime:{lt:end},endsAt:{gt:start},status:{in:["PENDING","CONFIRMED"]}}});const blocked=await tx.blockedSlot.findFirst({where:{startsAt:{lt:end},endsAt:{gt:start}}});if(conflict||blocked)throw new AppointmentConflictError("Créneau indisponible");const service=await tx.service.findUniqueOrThrow({where:{slug:input.serviceId}});const hairstyle=input.hairstyleId?await tx.hairstyle.findUnique({where:{slug:input.hairstyleId}}):null;return fromDb(await tx.appointment.create({data:{reference,customerName:input.customerName,phone:input.phone,whatsapp:input.whatsapp,email:input.email||null,serviceId:service.id,hairstyleId:hairstyle?.id,appointmentDate:new Date(`${input.appointmentDate}T00:00:00.000Z`),appointmentTime:input.appointmentTime,appointmentDateTime:start,endsAt:end,timezone:"Europe/Paris",durationMinutes:details.durationMinutes,quotedPrice:details.price,location:input.location,appointmentType:input.appointmentType,preferredContactMethod:input.preferredContactMethod,message:input.message||null},include:{service:true,hairstyle:true}}));},{isolationLevel:"Serializable"});}catch(error){if(error instanceof AppointmentConflictError||String(error).includes("Appointment_no_active_overlap")||String(error).includes("appointmentDateTime_key"))throw new AppointmentConflictError("Créneau indisponible");throw error;}}return exclusive(async()=>{const items=await readLocal();if(items.some(item=>item.appointmentDateTime&&item.endsAt&&new Date(item.appointmentDateTime)<end&&new Date(item.endsAt)>start&&!(["CANCELLED","REFUSED","ARCHIVED"] as string[]).includes(item.status)))throw new AppointmentConflictError("Créneau indisponible");const item:AppointmentRecord={id:crypto.randomUUID(),reference,customerName:input.customerName,phone:input.phone,whatsapp:input.whatsapp,email:input.email||undefined,serviceId:input.serviceId,hairstyleId:input.hairstyleId||undefined,appointmentDate:input.appointmentDate,appointmentTime:input.appointmentTime,location:input.location,appointmentType:input.appointmentType,preferredContactMethod:input.preferredContactMethod,message:input.message||undefined,appointmentDateTime:start.toISOString(),endsAt:end.toISOString(),timezone:"Europe/Paris",durationMinutes:details.durationMinutes,quotedPrice:details.price,status:"PENDING",createdAt:now,updatedAt:now};items.push(item);await writeLocal(items);return item})}
-export async function listAppointments(){const db=getPrisma();if(db)return(await db.appointment.findMany({include:{service:true,hairstyle:true},orderBy:[{appointmentDateTime:"asc"}]})).map(fromDb);return(await readLocal()).sort((a,b)=>(a.appointmentDateTime||a.appointmentDate+a.appointmentTime).localeCompare(b.appointmentDateTime||b.appointmentDate+b.appointmentTime));}
-export async function getAppointment(reference:string){const db=getPrisma();if(db){const x=await db.appointment.findUnique({where:{reference},include:{service:true,hairstyle:true}});return x?fromDb(x):null;}return(await readLocal()).find(x=>x.reference===reference)||null;}
-export async function updateAppointment(reference:string,status:AppointmentStatus,notificationErrors?:string[]){const db=getPrisma();if(db){const x=await db.appointment.update({where:{reference},data:{status,notificationErrors},include:{service:true,hairstyle:true}});return fromDb(x);}return exclusive(async()=>{const items=await readLocal();const item=items.find(x=>x.reference===reference);if(!item)return null;item.status=status;item.updatedAt=new Date().toISOString();if(notificationErrors)item.notificationErrors=notificationErrors;await writeLocal(items);return item});}
-export async function archiveAppointment(reference:string){return updateAppointment(reference,"ARCHIVED")}
+type DbAppointment = {
+  id: string;
+  reference: string;
+  customerName: string;
+  phone: string;
+  whatsapp: string;
+  email: string | null;
+  service: { slug: string };
+  hairstyle: { slug: string } | null;
+  serviceVariantId: string | null;
+  braidSizeCode: string | null;
+  extraLength: boolean;
+  estimatedPriceCents: number | null;
+  selectedProductNote: string | null;
+  appointmentDate: Date;
+  appointmentTime: string;
+  appointmentDateTime: Date;
+  endsAt: Date;
+  timezone: string;
+  durationMinutes: number;
+  quotedPrice: string | null;
+  location: string;
+  appointmentType: string;
+  preferredContactMethod: string;
+  message: string | null;
+  status: string;
+  notificationErrors: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+};
+function fromDb(x: DbAppointment): AppointmentRecord {
+  return {
+    ...x,
+    email: x.email || undefined,
+    serviceId: x.service.slug,
+    hairstyleId: x.hairstyle?.slug,
+    serviceVariantId: x.serviceVariantId || undefined,
+    braidSizeCode: x.braidSizeCode as AppointmentRecord["braidSizeCode"],
+    estimatedPriceCents: x.estimatedPriceCents ?? undefined,
+    selectedProductNote: x.selectedProductNote || undefined,
+    appointmentDate: x.appointmentDate.toISOString().slice(0, 10),
+    appointmentDateTime: x.appointmentDateTime.toISOString(),
+    endsAt: x.endsAt.toISOString(),
+    quotedPrice: x.quotedPrice || undefined,
+    appointmentType: x.appointmentType as AppointmentRecord["appointmentType"],
+    preferredContactMethod:
+      x.preferredContactMethod as AppointmentRecord["preferredContactMethod"],
+    message: x.message || undefined,
+    status: x.status as AppointmentStatus,
+    notificationErrors: Array.isArray(x.notificationErrors)
+      ? (x.notificationErrors as string[])
+      : undefined,
+    createdAt: x.createdAt.toISOString(),
+    updatedAt: x.updatedAt.toISOString(),
+  };
+}
+export function serviceDetails(serviceId: string) {
+  return services.find((service) => service.id === serviceId) ?? null;
+}
+export async function hasConflict(
+  date: string,
+  time: string,
+  durationMinutes: number,
+) {
+  const { start, end } = appointmentRange(date, time, durationMinutes);
+  const db = getPrisma();
+  if (db) {
+    const [appointment, blocked] = await Promise.all([
+      db.appointment.findFirst({
+        where: {
+          appointmentDateTime: { lt: end },
+          endsAt: { gt: start },
+          status: { in: ["PENDING", "CONFIRMED"] },
+        },
+      }),
+      db.blockedSlot.findFirst({
+        where: { startsAt: { lt: end }, endsAt: { gt: start } },
+      }),
+    ]);
+    return Boolean(appointment || blocked);
+  }
+  return (await readLocal()).some((x) => {
+    if (!x.appointmentDateTime || !x.endsAt)
+      return x.appointmentDate === date && x.appointmentTime === time;
+    return (
+      new Date(x.appointmentDateTime) < end &&
+      new Date(x.endsAt) > start &&
+      !(["CANCELLED", "REFUSED", "ARCHIVED"] as string[]).includes(x.status)
+    );
+  });
+}
+export async function createAppointment(
+  input: AppointmentInput,
+  reference: string,
+): Promise<AppointmentRecord> {
+  const details = serviceDetails(input.serviceId);
+  if (!details) throw new Error("Service introuvable");
+  const { start, end } = appointmentRange(
+    input.appointmentDate,
+    input.appointmentTime,
+    details.durationMinutes,
+  );
+  const now = new Date().toISOString();
+  const db = getPrisma();
+  if (db) {
+    try {
+      return await db.$transaction(
+        async (tx) => {
+          const [conflict, blocked, availability] = await Promise.all([
+            tx.appointment.findFirst({
+              where: {
+                appointmentDateTime: { lt: end },
+                endsAt: { gt: start },
+                status: { in: ["PENDING", "CONFIRMED"] },
+              },
+            }),
+            tx.blockedSlot.findFirst({
+              where: { startsAt: { lt: end }, endsAt: { gt: start } },
+            }),
+            tx.bookingAvailabilityDate.findUnique({
+              where: {
+                date: new Date(`${input.appointmentDate}T00:00:00.000Z`),
+              },
+            }),
+          ]);
+          if (conflict || blocked || !availability?.isPublished)
+            throw new AppointmentConflictError("Créneau indisponible");
+          const service = await tx.service.findUniqueOrThrow({
+            where: { slug: input.serviceId },
+          });
+          const hairstyle = input.hairstyleId
+            ? await tx.hairstyle.findUnique({
+                where: { slug: input.hairstyleId },
+              })
+            : null;
+          const variant = input.braidSizeCode
+            ? await tx.serviceVariant.findUnique({
+                where: { code: input.braidSizeCode },
+              })
+            : null;
+          if (input.braidSizeCode && !variant?.active)
+            throw new Error("Cette taille de tresses n’est pas disponible");
+          const expected = variant
+            ? variant.priceCents +
+              (input.extraLength ? variant.extraLengthCents : 0)
+            : undefined;
+          return fromDb(
+            await tx.appointment.create({
+              data: {
+                reference,
+                customerName: input.customerName,
+                phone: input.phone,
+                whatsapp: input.whatsapp,
+                email: input.email || null,
+                serviceId: service.id,
+                hairstyleId: hairstyle?.id,
+                serviceVariantId: variant?.id,
+                braidSizeCode: variant?.code,
+                extraLength: Boolean(input.extraLength),
+                estimatedPriceCents: expected,
+                availabilityDateId: availability.id,
+                appointmentDate: new Date(
+                  `${input.appointmentDate}T00:00:00.000Z`,
+                ),
+                appointmentTime: input.appointmentTime,
+                appointmentDateTime: start,
+                endsAt: end,
+                timezone: "Europe/Paris",
+                durationMinutes: details.durationMinutes,
+                quotedPrice: details.price,
+                location: input.location,
+                appointmentType: input.appointmentType,
+                preferredContactMethod: input.preferredContactMethod,
+                message: input.message || null,
+              },
+              include: { service: true, hairstyle: true },
+            }),
+          );
+        },
+        { isolationLevel: "Serializable" },
+      );
+    } catch (error) {
+      if (
+        error instanceof AppointmentConflictError ||
+        String(error).includes("Appointment_no_active_overlap") ||
+        String(error).includes("appointmentDateTime_key")
+      )
+        throw new AppointmentConflictError("Créneau indisponible");
+      throw error;
+    }
+  }
+  return exclusive(async () => {
+    const items = await readLocal();
+    if (
+      items.some(
+        (item) =>
+          item.appointmentDateTime &&
+          item.endsAt &&
+          new Date(item.appointmentDateTime) < end &&
+          new Date(item.endsAt) > start &&
+          !(["CANCELLED", "REFUSED", "ARCHIVED"] as string[]).includes(
+            item.status,
+          ),
+      )
+    )
+      throw new AppointmentConflictError("Créneau indisponible");
+    const item: AppointmentRecord = {
+      id: crypto.randomUUID(),
+      reference,
+      customerName: input.customerName,
+      phone: input.phone,
+      whatsapp: input.whatsapp,
+      email: input.email || undefined,
+      serviceId: input.serviceId,
+      hairstyleId: input.hairstyleId || undefined,
+      braidSizeCode: input.braidSizeCode,
+      extraLength: Boolean(input.extraLength),
+      estimatedPriceCents: input.estimatedPriceCents,
+      appointmentDate: input.appointmentDate,
+      appointmentTime: input.appointmentTime,
+      location: input.location,
+      appointmentType: input.appointmentType,
+      preferredContactMethod: input.preferredContactMethod,
+      message: input.message || undefined,
+      appointmentDateTime: start.toISOString(),
+      endsAt: end.toISOString(),
+      timezone: "Europe/Paris",
+      durationMinutes: details.durationMinutes,
+      quotedPrice: details.price,
+      status: "PENDING",
+      createdAt: now,
+      updatedAt: now,
+    };
+    items.push(item);
+    await writeLocal(items);
+    return item;
+  });
+}
+export async function listAppointments() {
+  const db = getPrisma();
+  if (db)
+    return (
+      await db.appointment.findMany({
+        include: { service: true, hairstyle: true },
+        orderBy: [{ appointmentDateTime: "asc" }],
+      })
+    ).map(fromDb);
+  return (await readLocal()).sort((a, b) =>
+    (
+      a.appointmentDateTime || a.appointmentDate + a.appointmentTime
+    ).localeCompare(
+      b.appointmentDateTime || b.appointmentDate + b.appointmentTime,
+    ),
+  );
+}
+export async function getAppointment(reference: string) {
+  const db = getPrisma();
+  if (db) {
+    const x = await db.appointment.findUnique({
+      where: { reference },
+      include: { service: true, hairstyle: true },
+    });
+    return x ? fromDb(x) : null;
+  }
+  return (await readLocal()).find((x) => x.reference === reference) || null;
+}
+export async function updateAppointment(
+  reference: string,
+  status: AppointmentStatus,
+  notificationErrors?: string[],
+) {
+  const db = getPrisma();
+  if (db) {
+    const x = await db.appointment.update({
+      where: { reference },
+      data: { status, notificationErrors },
+      include: { service: true, hairstyle: true },
+    });
+    return fromDb(x);
+  }
+  return exclusive(async () => {
+    const items = await readLocal();
+    const item = items.find((x) => x.reference === reference);
+    if (!item) return null;
+    item.status = status;
+    item.updatedAt = new Date().toISOString();
+    if (notificationErrors) item.notificationErrors = notificationErrors;
+    await writeLocal(items);
+    return item;
+  });
+}
+export async function archiveAppointment(reference: string) {
+  return updateAppointment(reference, "ARCHIVED");
+}

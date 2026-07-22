@@ -16,6 +16,7 @@
 /playwright-report
 /.codex-dev-*.log
 /data/appointments.json
+/data/availability.json
 
 # next.js
 /.next/
@@ -47,3 +48,5 @@ skills-lock.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.neon
+/.e2e-data/

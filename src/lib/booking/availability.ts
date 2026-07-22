@@ -15,7 +15,7 @@ export function validateBusinessSlot(date: string, time: string, durationMinutes
   if (isBefore(start, addMinutes(now, availabilityConfig.minimumLeadHours * 60))) return { valid: false, reason: "Ce créneau est trop proche ou déjà passé" } as const;
   const localStart = toZonedTime(start, availabilityConfig.timezone);
   const localEnd = toZonedTime(end, availabilityConfig.timezone);
-  if (!availabilityConfig.openDays.includes(localStart.getDay() as 1 | 2 | 3 | 4 | 5 | 6)) return { valid: false, reason: "Princesse ne reçoit pas ce jour-là" } as const;
+  if (!availabilityConfig.openDays.includes(localStart.getDay() as 1 | 2 | 3 | 4 | 5 | 6)) return { valid: false, reason: "Nao ne reçoit pas ce jour-là" } as const;
   const startMinutes = localStart.getHours() * 60 + localStart.getMinutes();
   const endMinutes = localEnd.getHours() * 60 + localEnd.getMinutes();
   if (startMinutes < minutes(availabilityConfig.openingTime) || endMinutes > minutes(availabilityConfig.closingTime)) return { valid: false, reason: "Ce créneau est en dehors des horaires d'ouverture" } as const;

@@ -1,0 +1,15 @@
+ALTER TABLE "Appointment" ADD COLUMN "serviceVariantId" TEXT, ADD COLUMN "braidSizeCode" TEXT, ADD COLUMN "extraLength" BOOLEAN NOT NULL DEFAULT false, ADD COLUMN "estimatedPriceCents" INTEGER, ADD COLUMN "selectedProductNote" TEXT, ADD COLUMN "availabilityDateId" TEXT;
+CREATE TABLE "ServiceVariant" ("id" TEXT NOT NULL,"serviceSlug" TEXT NOT NULL,"code" TEXT NOT NULL,"label" TEXT NOT NULL,"priceCents" INTEGER NOT NULL,"displayOrder" INTEGER NOT NULL,"active" BOOLEAN NOT NULL DEFAULT true,"extraLengthCents" INTEGER NOT NULL DEFAULT 1000,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updatedAt" TIMESTAMP(3) NOT NULL,CONSTRAINT "ServiceVariant_pkey" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "ServiceVariant_code_key" ON "ServiceVariant"("code");
+CREATE TABLE "Product" ("id" TEXT NOT NULL,"slug" TEXT NOT NULL,"name" TEXT NOT NULL,"brand" TEXT NOT NULL,"category" TEXT NOT NULL,"description" TEXT NOT NULL,"code" TEXT,"priceCents" INTEGER,"priceStatus" TEXT NOT NULL,"format" TEXT,"imagePath" TEXT NOT NULL,"active" BOOLEAN NOT NULL DEFAULT true,"featured" BOOLEAN NOT NULL DEFAULT false,"available" BOOLEAN NOT NULL DEFAULT true,"displayOrder" INTEGER NOT NULL DEFAULT 0,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updatedAt" TIMESTAMP(3) NOT NULL,CONSTRAINT "Product_pkey" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "Product_slug_key" ON "Product"("slug");
+CREATE TABLE "BookingAvailabilityDate" ("id" TEXT NOT NULL,"date" DATE NOT NULL,"isPublished" BOOLEAN NOT NULL DEFAULT false,"startMinutes" INTEGER NOT NULL DEFAULT 540,"endMinutes" INTEGER NOT NULL DEFAULT 1080,"breakStartMinutes" INTEGER,"breakEndMinutes" INTEGER,"slotIntervalMinutes" INTEGER NOT NULL DEFAULT 30,"note" TEXT,"createdBy" TEXT,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updatedAt" TIMESTAMP(3) NOT NULL,CONSTRAINT "BookingAvailabilityDate_pkey" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "BookingAvailabilityDate_date_key" ON "BookingAvailabilityDate"("date");
+CREATE INDEX "BookingAvailabilityDate_isPublished_date_idx" ON "BookingAvailabilityDate"("isPublished", "date");
+CREATE INDEX "Appointment_serviceVariantId_idx" ON "Appointment"("serviceVariantId");
+CREATE INDEX "Appointment_availabilityDateId_idx" ON "Appointment"("availabilityDateId");
+ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_serviceVariantId_fkey" FOREIGN KEY ("serviceVariantId") REFERENCES "ServiceVariant"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_availabilityDateId_fkey" FOREIGN KEY ("availabilityDateId") REFERENCES "BookingAvailabilityDate"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ServiceVariant" ADD CONSTRAINT "ServiceVariant_price_nonnegative" CHECK ("priceCents" >= 0 AND "extraLengthCents" >= 0);
+ALTER TABLE "Product" ADD CONSTRAINT "Product_price_nonnegative" CHECK ("priceCents" IS NULL OR "priceCents" >= 0);
+ALTER TABLE "BookingAvailabilityDate" ADD CONSTRAINT "BookingAvailabilityDate_hours_valid" CHECK ("startMinutes" >= 0 AND "endMinutes" <= 1440 AND "startMinutes" < "endMinutes" AND "slotIntervalMinutes" >= 15);

@@ -23,4 +23,8 @@ Configurer séparément Preview et Production : `NEXT_PUBLIC_SITE_URL`, `PRINCES
 6. Tester Resend et Meta uniquement si leurs identifiants sont configurés.
 7. Déployer en production et définir l'URL finale dans `NEXT_PUBLIC_SITE_URL`.
 
+Pour cette version, la migration additive `20260722090000_beauty_hair_catalogue_availability` doit être appliquée avant le déploiement applicatif. Elle ajoute le catalogue, les variantes tarifaires et les dates de disponibilité sans supprimer les rendez-vous existants. Créer d'abord une branche de sauvegarde Neon, valider la migration sur une branche Preview isolée, puis l'appliquer à `main`.
+
+La Preview Beauty Haïr by Nao utilise une branche Neon distincte. Ne jamais configurer Preview et Production avec la même URL PostgreSQL.
+
 Le fallback `data/appointments.json` est interdit par le code en production.

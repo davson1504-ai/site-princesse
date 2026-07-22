@@ -1,1 +1,9 @@
-import Link from "next/link";export default function Page(){return <div className="mx-auto grid max-w-5xl gap-10 px-5 py-16 md:grid-cols-2"><div className="aspect-[4/5] rounded-[8rem_8rem_2rem_2rem] bg-[#d8ad9d]"/><div className="self-center"><p className="text-xs uppercase tracking-[.25em]">À propos</p><h1 className="mt-3 font-serif text-5xl">Princesse, votre administratrice et coiffeuse</h1><p className="mt-6 leading-7 text-black/60">[BIOGRAPHIE À REMPLACER] Cette zone présentera l’expérience, la spécialité, les valeurs et la méthode de travail de Princesse sans inventer d’informations.</p><Link href="/rendez-vous" className="mt-7 inline-block rounded-full bg-[#231b1b] px-6 py-3 text-white">Prendre rendez-vous</Link></div></div>}
+import Image from "next/image";
+import Link from "next/link";
+import { imageAlts } from "@/data/site";
+
+const image = "/images/hairstyles/cheveux-naturels-afro.jpeg";
+
+export default function Page() {
+  return <div className="mx-auto grid max-w-5xl gap-10 px-5 py-16 md:grid-cols-2"><div className="relative aspect-[4/5] overflow-hidden rounded-[8rem_8rem_2rem_2rem]"><Image src={image} alt={imageAlts[image]} fill priority sizes="(max-width:768px) 100vw,50vw" className="object-cover" /></div><div className="self-center"><p className="text-xs uppercase tracking-[.25em]">À propos</p><h1 className="mt-3 font-serif text-5xl">Beauty Haïr by Nao</h1><p className="mt-6 leading-7 text-black/60">Nao propose des coiffures personnalisées sur des dates sélectionnées selon son planning. Les détails de chaque prestation sont confirmés directement avec la cliente.</p><Link href="/rendez-vous" className="mt-7 inline-block rounded-full bg-[#231b1b] px-6 py-3 text-white">Prendre rendez-vous</Link></div></div>;
+}

@@ -1,0 +1,1 @@
+"use client";export function LogoutButton(){return <button className="ml-auto text-sm underline" onClick={async()=>{await fetch("/api/admin/logout",{method:"POST"});location.href="/admin"}}>Déconnexion</button>}
